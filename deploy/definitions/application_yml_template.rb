@@ -12,7 +12,6 @@ define :application_yml_template do
     group params[:deploy][:group]
     mode "0660"
     variables :env => params[:env]
-    notifies :run, resources(:execute => "restart Rails app #{params[:application]} for custom env")
 
     only_if do
       File.exists?("#{params[:deploy][:deploy_to]}/shared/config")
