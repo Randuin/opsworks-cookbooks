@@ -20,6 +20,7 @@ node[:deploy].each do |application, deploy|
     service "sidekiq-#{application}" do
       provider Chef::Provider::Service::Upstart
       supports stop: true, start: true, restart: true, status: true
+      action [ :enable, :restart ]
     end
 
     bash 'restart_sidekiq' do
