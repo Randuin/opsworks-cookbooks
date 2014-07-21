@@ -7,8 +7,8 @@ node[:deploy].each do |application, deploy|
     template "setup sidekiq.conf" do
       path "/etc/init/sidekiq-#{application}.conf"
       source "sidekiq.conf.erb"
-      owner "deploy"
-      group "apache"
+      owner "root"
+      group "root"
       mode 0644
       variables({
         release_path: release_path,
