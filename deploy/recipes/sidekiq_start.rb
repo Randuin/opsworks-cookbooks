@@ -1,31 +1,17 @@
 node[:deploy].each do |application, deploy|
-  if deploy['sidekiq']
-    release_path = ::File.join(deploy[:deploy_to], 'current')
-    sidekiq_env = deploy['sidekiq']['rails_env'] || 'production'
-    require_path = ::File.expand_path(deploy['sidekiq']['require'] || '.', release_path)
+  if deploy[:sidekiq]
+    workers = node[:sidekiq][application].to_hash.reject {|k,v| k.to_s =~ /restart_command|syslog/ }
 
-    template "setup sidekiq.conf" do
-      path "/etc/init/sidekiq-#{application}.conf"
-      source "sidekiq.conf.erb"
-      owner "root"
-      group "root"
+    template "/etc/monit.d/sidekiq_#{application}.monitrc" do
       mode 0644
+      source "sidekiq_monitrc.erb"
+
       variables({
-        release_path: release_path,
-        require_path: require_path,
-        sidekiq_env: sidekiq_env
+        :deploy => deploy,
+        :application => application
       })
-    end
 
-    service "sidekiq-#{application}" do
-      provider Chef::Provider::Service::Upstart
-      supports stop: true, start: true, restart: true, status: true
-      action [ :enable, :restart ]
-    end
-
-    bash 'restart_sidekiq' do
-      code "echo noop"
-      notifies :restart, "service[sidekiq-#{application}]"
+      notifies :reload, resources(:service => "monit"), :immediately
     end
   end
 end

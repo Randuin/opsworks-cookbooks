@@ -1,0 +1,8 @@
+<% conf_file = "#{@deploy[:deploy_to]}/current/config/sidekiq.yml" %>
+<% pid_file = "#{@deploy[:deploy_to]}/shared/pids/sidekiq.pid" %>
+
+check process sidekiq
+  with pidfile <%= pid_file %>
+  start program = "/bin/su - <%= @deploy[:user] %> -c 'cd <%= @deploy[:current_path] %> && RAILS_ENV=<%= @deploy[:rails_env] %> bundle exec sidekiq -C <%= conf_file %> -P  <%= pid_file %>'" with timeout 90 seconds
+  stop  program = "/bin/su - <%= @deploy[:user] %> -c 'kill -s TERM `cat <%= pid_file %>`'" with timeout 90 seconds
+  group sidekiq_<%= @application %>_group
